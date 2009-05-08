@@ -5,6 +5,8 @@
 */
 #include <windows.h>
 
+int g_x, g_y, g_dx, g_dy;
+
 BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
 
 BOOL CALLBACK FindWindowProc(HWND hwnd, LPARAM lParam)
@@ -36,9 +38,25 @@ LONG _declspec(dllexport) ToggleFullScreen()
 		{
 			/* Has a caption, so isn't maximised */
 
-			int cx, cy;
-			cx = GetSystemMetrics(SM_CXSCREEN);
-			cy = GetSystemMetrics(SM_CYSCREEN);
+			MONITORINFO mi;
+			RECT rc;
+			HMONITOR hMonitor;
+
+			GetWindowRect(hTop, &rc);
+			hMonitor = MonitorFromRect(&rc, MONITOR_DEFAULTTONEAREST);
+
+			// 
+			// get the work area or entire monitor rect. 
+			// 
+			mi.cbSize = sizeof(mi);
+			GetMonitorInfo(hMonitor, &mi);
+
+			g_x = mi.rcMonitor.left;
+			g_y = mi.rcMonitor.top;
+			g_dx = mi.rcMonitor.right - g_x;
+			g_dy = mi.rcMonitor.bottom - g_y;
+			//cx = GetSystemMetrics(SM_CXSCREEN);
+			//cy = GetSystemMetrics(SM_CYSCREEN);
 
 			/* Remove border, caption, and edges */
 			SetWindowLong(hTop, GWL_STYLE, GetWindowLong(hTop, GWL_EXSTYLE) & ~WS_BORDER); 
@@ -46,7 +64,7 @@ LONG _declspec(dllexport) ToggleFullScreen()
 			SetWindowLong(hTop, GWL_EXSTYLE, GetWindowLong(hTop, GWL_STYLE) & ~WS_EX_CLIENTEDGE); 
 			SetWindowLong(hTop, GWL_EXSTYLE, GetWindowLong(hTop, GWL_STYLE) & ~WS_EX_WINDOWEDGE); 
 
-			SetWindowPos(hTop, HWND_TOP, 0, 0, cx, cy, SWP_SHOWWINDOW);
+			SetWindowPos(hTop, HWND_TOP, g_x, g_y, g_dx, g_dy, SWP_SHOWWINDOW);
 
 			/* Now need to find the child text area window 
 			 * and set it's size accordingly 
@@ -80,13 +98,13 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam)
 	GetClassName(hwnd, lpszClassName, 100);
 	if ( strcmp(lpszClassName, "VimTextArea") == 0 ) 
 	{
-		int cx, cy;
-		cx = GetSystemMetrics(SM_CXSCREEN);
-		cy = GetSystemMetrics(SM_CYSCREEN);
+		//int cx, cy;
+		//cx = GetSystemMetrics(SM_CXSCREEN);
+		//cy = GetSystemMetrics(SM_CYSCREEN);
 
 		SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_EX_CLIENTEDGE); 
 		SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_EX_WINDOWEDGE); 
-		SetWindowPos(hwnd, HWND_TOP, 0, 0, cx, cy, SWP_SHOWWINDOW);
+		SetWindowPos(hwnd, HWND_TOP, 0, 0, g_dx, g_dy, SWP_SHOWWINDOW);
 	}
 	return TRUE;
 	
