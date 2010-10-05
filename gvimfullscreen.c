@@ -85,6 +85,7 @@ LONG _declspec(dllexport) ToggleFullScreen()
 			SetWindowLong(hTop, GWL_STYLE, GetWindowLong(hTop, GWL_STYLE) | WS_THICKFRAME); 
 			SetWindowLong(hTop, GWL_STYLE, GetWindowLong(hTop, GWL_STYLE) | WS_DLGFRAME); 
 
+
 			SendMessage(hTop, WM_SYSCOMMAND, SC_RESTORE, 0);
 			SendMessage(hTop, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 		}
@@ -105,6 +106,8 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam)
 		SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_EX_CLIENTEDGE); 
 		SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_EX_WINDOWEDGE); 
 		SetWindowPos(hwnd, HWND_TOP, 0, 0, g_dx, g_dy, SWP_SHOWWINDOW);
+
+    SetClassLong(hwnd, GCL_HBRBACKGROUND, CreateSolidBrush(RGB(0,0,0)));
 	}
 	return TRUE;
 	
